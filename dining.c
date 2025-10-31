@@ -7,7 +7,10 @@
 
 typedef struct dining {
   int capacity;
+  // flag to prevent students from entering dining hall
   bool cleaning;
+  // flag to prevent new cleaning services to enter dining hall
+  bool active_cleaning;
   int seated_students;
   // dining hall mutex for atomic book keeping
   pthread_mutex_t m;
@@ -19,6 +22,7 @@ dining_t* dining_init(int capacity) {
   dining_t* dining = malloc(sizeof(dining_t));
   dining->capacity = capacity;
   dining->cleaning = false;
+  dining->active_cleaning = false;
   dining->seated_students = 0;
   pthread_mutex_init(&dining->m, NULL);
   pthread_cond_init(&dining->cv, NULL);
@@ -65,16 +69,19 @@ void dining_student_leave(dining_t* d) {
  */
 void dining_cleaning_enter(dining_t* d) {
   pthread_mutex_lock(&d->m);
-  while (d->seated_students > 0) {
+  // prevent new students from entering once cleaning starts
+  d->cleaning = true;
+  while (d->seated_students > 0 || d->active_cleaning) {
     pthread_cond_wait(&d->cv, &d->m);
   }
-  d->cleaning = true;
+  d->active_cleaning = true;
   pthread_mutex_unlock(&d->m);
 }
 
 void dining_cleaning_leave(dining_t* d) {
   pthread_mutex_lock(&d->m);
   d->cleaning = false;
+  d->active_cleaning = false;
   pthread_cond_broadcast(&d->cv);
   pthread_mutex_unlock(&d->m);
 }
