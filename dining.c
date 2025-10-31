@@ -65,10 +65,10 @@ void dining_student_leave(dining_t* d) {
  */
 void dining_cleaning_enter(dining_t* d) {
   pthread_mutex_lock(&d->m);
-  d->cleaning = true;
   while (d->seated_students > 0) {
     pthread_cond_wait(&d->cv, &d->m);
   }
+  d->cleaning = true;
   pthread_mutex_unlock(&d->m);
 }
 
