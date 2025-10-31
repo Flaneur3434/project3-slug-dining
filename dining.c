@@ -53,7 +53,7 @@ void dining_student_leave(dining_t* d) {
   pthread_mutex_lock(&d->m);
   d->seated_students--;
   // If seats freed or cleaning may be waiting, wake someone
-  pthread_cond_signal(&d->cv);
+  pthread_cond_broadcast(&d->cv);
   pthread_mutex_unlock(&d->m);
 }
 
